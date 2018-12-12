@@ -10,9 +10,8 @@ RUN nuget restore
 # copy everything else and build app
 COPY aspnetmvcapp/. ./aspnetmvcapp/
 WORKDIR /app/aspnetmvcapp
-RUN msbuild /p:Configuration=Release
-
+RUN msbuild /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:PublishUrl="/out" /p:configuration="Release"
 
 FROM microsoft/aspnet:4.7.2 AS runtime
 WORKDIR /inetpub/wwwroot
-COPY --from=build /app/aspnetmvcapp/. ./
+COPY --from=build /out/. ./
