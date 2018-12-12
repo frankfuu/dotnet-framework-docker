@@ -16,18 +16,12 @@ RUN powershell -Command `
         Remove-Item -Force -Recurse microsoft-windows-netfx3
 
 # Apply latest patch
-RUN powershell -Command `
-        $ErrorActionPreference = 'Stop'; `
-        $ProgressPreference = 'SilentlyContinue'; `
-        Invoke-WebRequest `
-            -UseBasicParsing `
-            -Uri "http://download.windowsupdate.com/c/msdownload/update/software/secu/2018/12/windows10.0-kb4471324-x64_80891aefadd9b7eee899ed184c3de15117b962c1.msu" `
-            -OutFile patch.msu; `
-        New-Item -Type Directory patch; `
-        Start-Process expand -ArgumentList 'patch.msu', 'patch', '-F:*' -NoNewWindow -Wait; `
-        Remove-Item -Force patch.msu; `
-        Add-WindowsPackage -Online -PackagePath C:\patch\Windows10.0-KB4471324-x64.cab; `
-        Remove-Item -Force -Recurse \patch
+RUN curl -SL --output patch.msu http://download.windowsupdate.com/c/msdownload/update/software/secu/2018/12/windows10.0-kb4471324-x64_80891aefadd9b7eee899ed184c3de15117b962c1.msu `
+    && mkdir patch `
+    && expand patch.msu patch -F:* `
+    && del /F /Q patch.msu `
+    && DISM /online /Add-Package /PackagePath:C:\patch\Windows10.0-KB4471324-x64.cab `
+    && rmdir /S /Q patch
 
 # ngen .NET 3.5 Fx
 ENV COMPLUS_NGenProtectedProcess_FeatureEnabled 0
